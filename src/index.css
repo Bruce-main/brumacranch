@@ -11,3 +11,27 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+.farm-title {
+  font-family: 'Merriweather', serif;
+  letter-spacing: 1px;
+}
+
+.farm-card {
+  background-color: #fffbea; /* soft cream */
+  border: 2px solid #6c9a74; /* earthy green border */
+  border-radius: 8px;
+}
+
+.farm-card input,
+.farm-card textarea {
+  background-color: #fdfcf7; /* off-white rustic background */
+}
+
+.farm-card button {
+  background-color: #6c9a74;
+  border: none;
+}
+
+.farm-card button:hover {
+  background-color: #588a61;
+}
