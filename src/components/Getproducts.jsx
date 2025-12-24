@@ -88,14 +88,21 @@ const Getproducts = () => {
         🌾 Browse Our Farm Products 🌾
       </h2>
 
-      <div className="text-center mb-4">
+      <div className="text-center mb-4 d-flex justify-content-center gap-3">
         <button
           className="btn btn-success fw-bold shadow"
           onClick={() => navigate("/addproducts")}
         >
           ➕ Add New Product
         </button>
+        <button
+          className="btn btn-outline-secondary fw-bold shadow"
+          onClick={() => navigate("/deletedproducts")}
+        >
+          🗂️ View Deleted Products
+        </button>
       </div>
+
 
       <div className="row justify-content-center mb-5">
         <input
