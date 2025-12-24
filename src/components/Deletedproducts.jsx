@@ -14,7 +14,7 @@ const DeletedProducts = () => {
 
   const fetchDeletedProducts = () => {
     axios
-      .get("http://brumacranch2point0.pythonanywhere.com/api/deletedproducts")
+      .get("https://brumacranch2point0.pythonanywhere.com/api/deletedproducts")
       .then((response) => {
         setDeletedProducts(response.data.deleted_products);
         setTotalRevenue(response.data.total_revenue);
@@ -28,7 +28,7 @@ const DeletedProducts = () => {
   const restoreProduct = (productId) => {
     axios
       .post(
-        `http://brumacranch2point0.pythonanywhere.com/api/restoreproduct/${productId}`
+        `https://brumacranch2point0.pythonanywhere.com/api/restoreproduct/${productId}`
       )
       .then(() => {
         fetchDeletedProducts(); // refresh list
@@ -42,7 +42,7 @@ const DeletedProducts = () => {
   const restoreAllProducts = () => {
     axios
       .post(
-        "http://brumacranch2point0.pythonanywhere.com/api/restoreallproducts"
+        "https://brumacranch2point0.pythonanywhere.com/api/restoreallproducts"
       )
       .then(() => {
         fetchDeletedProducts(); // refresh list
