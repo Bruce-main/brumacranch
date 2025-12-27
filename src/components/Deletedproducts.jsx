@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // ✅ import navigate
+import { useNavigate } from "react-router-dom";
 
 const DeletedProducts = () => {
   const [deletedProducts, setDeletedProducts] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
+  const [search, setSearch] = useState(""); // ✅ search state
 
-  const navigate = useNavigate(); // ✅ initialize navigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDeletedProducts();
@@ -24,92 +25,112 @@ const DeletedProducts = () => {
       });
   };
 
-  // Restore a single product
   const restoreProduct = (productId) => {
     axios
       .post(
         `https://brumacranch2point0.pythonanywhere.com/api/restoreproduct/${productId}`
       )
       .then(() => {
-        fetchDeletedProducts(); // refresh list
+        fetchDeletedProducts();
       })
       .catch((error) => {
         console.error("Error restoring product:", error);
       });
   };
 
-  // Restore all deleted products
   const restoreAllProducts = () => {
     axios
       .post(
         "https://brumacranch2point0.pythonanywhere.com/api/restoreallproducts"
       )
       .then(() => {
-        fetchDeletedProducts(); // refresh list
+        fetchDeletedProducts();
       })
       .catch((error) => {
         console.error("Error restoring all products:", error);
       });
   };
 
-  return (
-    <div style={{ padding: "20px", fontFamily: "serif" }}>
-      <h2 style={{ color: "#5a3e2b" }}>Deleted Products</h2>
-      <ul>
-        {deletedProducts.map((product) => (
-          <li key={product.product_id} style={{ marginBottom: "10px" }}>
-            <strong>{product.name}</strong> - {product.description} ($
-            {product.price})
-            <button
-              onClick={() => restoreProduct(product.product_id)}
-              style={{
-                marginLeft: "10px",
-                backgroundColor: "#3e5a2b",
-                color: "white",
-                border: "none",
-                padding: "5px 10px",
-                cursor: "pointer",
-              }}
-            >
-              Restore
-            </button>
-          </li>
-        ))}
-      </ul>
-      <h3 style={{ marginTop: "20px", color: "#3e5a2b" }}>
-        Total Revenue from Deleted Products: ${totalRevenue}
-      </h3>
+  // ✅ filter deleted products by search term
+  const filteredDeletedProducts = deletedProducts.filter((product) =>
+    product.name?.toLowerCase().includes(search.toLowerCase())
+  );
 
-      {/* ✅ Flex container for spacing between buttons */}
-      <div style={{ marginTop: "20px", display: "flex", gap: "15px" }}>
+  return (
+    <div className="container-fluid bg-light min-vh-100 py-4">
+      <h2 className="text-center text-success fw-bold mb-4 farm-title">
+        🗂️ Deleted Products 🗂️
+      </h2>
+
+      <div className="text-center mb-4 d-flex justify-content-center gap-3">
         {deletedProducts.length > 0 && (
           <button
+            className="btn btn-success fw-bold shadow"
             onClick={restoreAllProducts}
-            style={{
-              backgroundColor: "#5a3e2b",
-              color: "white",
-              border: "none",
-              padding: "10px 15px",
-              cursor: "pointer",
-            }}
           >
-            Restore All Products
+            ♻️ Restore All Products
           </button>
         )}
-
         <button
+          className="btn btn-outline-secondary fw-bold shadow"
           onClick={() => navigate("/getproducts")}
-          style={{
-            backgroundColor: "#2b5a3e",
-            color: "white",
-            border: "none",
-            padding: "10px 15px",
-            cursor: "pointer",
-          }}
         >
           🔙 Back to Products
         </button>
       </div>
+
+      {/* ✅ Search bar */}
+      <div className="row justify-content-center mb-4">
+        <input
+          type="search"
+          className="form-control w-50 border border-danger shadow-sm"
+          placeholder="🔍 Search deleted products..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
+      <div className="table-responsive">
+        <table className="table table-bordered table-hover shadow-sm">
+          <thead className="table-danger">
+            <tr className="text-center">
+              <th>Name</th>
+              <th>Description</th>
+              <th>Price (KES)</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredDeletedProducts.map((product) => (
+              <tr key={product.product_id} className="align-middle">
+                <td className="fw-bold text-danger">{product.name}</td>
+                <td className="fst-italic text-muted">
+                  {product.description || "No description available"}
+                </td>
+                <td className="fw-bold">{product.price}</td>
+                <td className="text-center">
+                  <div className="d-flex flex-wrap justify-content-center gap-2">
+                    <button
+                      className="btn btn-success btn-sm"
+                      onClick={() => restoreProduct(product.product_id)}
+                    >
+                      ♻️ Restore
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {filteredDeletedProducts.length === 0 && (
+          <p className="text-center text-muted">No deleted products found.</p>
+        )}
+      </div>
+
+      <h2 className="text-center text-success fw-bold mt-4">
+        Total Revenue from Deleted Products: KES {totalRevenue}
+      </h2>
     </div>
   );
 };

@@ -1,14 +1,17 @@
 // AddProducts.jsx
 import React, { useState } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom"; // ✅ import navigate
 
 const AddProducts = () => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [quantity, setQuantity] = useState(1); // ✅ new quantity field
+  const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+
+  const navigate = useNavigate(); // ✅ initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,7 +20,6 @@ const AddProducts = () => {
     setMessage("");
 
     try {
-      // Loop based on quantity
       for (let i = 0; i < quantity; i++) {
         await axios.post(
           "https://brumacranch2point0.pythonanywhere.com/api/addproducts",
@@ -92,7 +94,6 @@ const AddProducts = () => {
           />
         </div>
 
-        {/* ✅ New Quantity Field */}
         <div className="mb-3">
           <label className="form-label fw-bold text-success">Quantity</label>
           <input
@@ -106,9 +107,19 @@ const AddProducts = () => {
           />
         </div>
 
-        <button type="submit" className="btn btn-success w-100 fw-bold">
-          🌱 Add Product(s)
-        </button>
+        <div className="d-flex justify-content-between gap-3">
+          <button type="submit" className="btn btn-success w-50 fw-bold">
+            🌱 Add Product(s)
+          </button>
+          {/* ✅ Back button */}
+          <button
+            type="button"
+            className="btn btn-outline-secondary w-50 fw-bold"
+            onClick={() => navigate("/getproducts")}
+          >
+            🔙 Back to Products
+          </button>
+        </div>
       </form>
     </div>
   );
