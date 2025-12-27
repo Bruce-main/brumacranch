@@ -62,25 +62,6 @@ const Getproducts = () => {
     }
   };
 
-  const handleAddOne = async (product) => {
-    try {
-      const response = await axios.post(
-        "https://brumacranch2point0.pythonanywhere.com/api/products",
-        {
-          name: product.name,
-          description: product.description,
-          price: product.price,
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
-
-      setProducts([...products, response.data]);
-    } catch (err) {
-      console.error("Error adding product:", err.response?.data || err.message);
-      setError("Failed to add product.");
-    }
-  };
-
   const startEditGroup = (name, group) => {
     setEditingGroup(name);
     setEditName(name);
@@ -135,12 +116,6 @@ const Getproducts = () => {
       </h2>
 
       <div className="text-center mb-4 d-flex justify-content-center gap-3">
-        <button
-          className="btn btn-success fw-bold shadow"
-          onClick={() => navigate("/addproducts")}
-        >
-          ➕ Add New Product
-        </button>
         <button
           className="btn btn-outline-secondary fw-bold shadow"
           onClick={() => navigate("/deletedproducts")}
@@ -236,12 +211,6 @@ const Getproducts = () => {
                             onClick={() => startEditGroup(name, group)}
                           >
                             ✏️ Edit
-                          </button>
-                          <button
-                            className="btn btn-primary btn-sm"
-                            onClick={() => handleAddOne(firstProduct)}
-                          >
-                            ➕ Add One
                           </button>
                           <button
                             className="btn btn-danger btn-sm"
