@@ -10,6 +10,7 @@ import Signin from './components/Signin'; // ✅ new page
 import Addproducts from './components/Addproducts';
 import Getproducts from './components/Getproducts';
 import Deletedproducts from './components/Deletedproducts';
+import Navbar from './components/Navbar';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/signin" element={<Signin />} />
+        <Route path="/navbar" element={<Navbar />} />
         <Route path="/deletedproducts" element={<Deletedproducts />} />
         <Route path="/addproducts" element={<Addproducts />} />
         <Route path="/getproducts" element={<Getproducts />} />   {/* ✅ stocks route */}

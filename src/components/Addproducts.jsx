@@ -1,7 +1,7 @@
 // AddProducts.jsx
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // ✅ import navigate
+import Navbar from "./Navbar"; // ✅ import Navbar
 
 const AddProducts = () => {
   const [name, setName] = useState("");
@@ -10,8 +10,6 @@ const AddProducts = () => {
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-
-  const navigate = useNavigate(); // ✅ initialize navigate
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,84 +42,82 @@ const AddProducts = () => {
     }
   };
 
+  const user = { name: "Bruce" }; // Example user, replace with auth state
+
   return (
-    <div className="container mt-5">
-      <h2 className="text-center text-success fw-bold mb-4 farm-title">
-        🌾 Add New Farm Product 🌾
-      </h2>
+    <>
+      {/* ✅ Navbar at the top */}
+      <Navbar user={user} />
 
-      {loading && <p className="text-success text-center">Submitting...</p>}
-      {message && <p className="text-center">{message}</p>}
+      <div className="container mt-5">
+        <h2 className="text-center text-success fw-bold mb-4 farm-title">
+          🌾 Add New Farm Product 🌾
+        </h2>
 
-      <form
-        onSubmit={handleSubmit}
-        className="card p-4 shadow col-md-6 mx-auto farm-card"
-      >
-        <div className="mb-3">
-          <label className="form-label fw-bold text-success">Product Name</label>
-          <input
-            type="text"
-            className="form-control border-success"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Fresh Tomatoes"
-            required
-          />
-        </div>
+        {loading && <p className="text-success text-center">Submitting...</p>}
+        {message && <p className="text-center">{message}</p>}
 
-        <div className="mb-3">
-          <label className="form-label fw-bold text-success">Description</label>
-          <textarea
-            className="form-control border-success"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe your product..."
-            required
-          />
-        </div>
+        <form
+          onSubmit={handleSubmit}
+          className="card p-4 shadow col-md-6 mx-auto farm-card"
+        >
+          <div className="mb-3">
+            <label className="form-label fw-bold text-success">Product Name</label>
+            <input
+              type="text"
+              className="form-control border-success"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Fresh Tomatoes"
+              required
+            />
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label fw-bold text-success">Price (KSh)</label>
-          <input
-            type="number"
-            className="form-control border-success"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            min="0"
-            step="0.01"
-            placeholder="e.g. 150.00"
-            required
-          />
-        </div>
+          <div className="mb-3">
+            <label className="form-label fw-bold text-success">Description</label>
+            <textarea
+              className="form-control border-success"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe your product..."
+              required
+            />
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label fw-bold text-success">Quantity</label>
-          <input
-            type="number"
-            className="form-control border-success"
-            value={quantity}
-            onChange={(e) => setQuantity(Number(e.target.value))}
-            min="1"
-            placeholder="e.g. 5"
-            required
-          />
-        </div>
+          <div className="mb-3">
+            <label className="form-label fw-bold text-success">Price (KSh)</label>
+            <input
+              type="number"
+              className="form-control border-success"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              min="0"
+              step="0.01"
+              placeholder="e.g. 150.00"
+              required
+            />
+          </div>
 
-        <div className="d-flex justify-content-between gap-3">
-          <button type="submit" className="btn btn-success w-50 fw-bold">
+          <div className="mb-3">
+            <label className="form-label fw-bold text-success">Quantity</label>
+            <input
+              type="number"
+              className="form-control border-success"
+              value={quantity}
+              onChange={(e) => setQuantity(Number(e.target.value))}
+              min="1"
+              placeholder="e.g. 5"
+              required
+            />
+          </div>
+
+          {/* ✅ Only submit button now, navigation handled by Navbar */}
+          <button type="submit" className="btn btn-success w-100 fw-bold">
             🌱 Add Product(s)
           </button>
-          {/* ✅ Back button */}
-          <button
-            type="button"
-            className="btn btn-outline-secondary w-50 fw-bold"
-            onClick={() => navigate("/getproducts")}
-          >
-            🔙 Back to Products
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </div>
+    </>
   );
 };
 

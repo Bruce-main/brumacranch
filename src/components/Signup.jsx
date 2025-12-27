@@ -99,7 +99,7 @@ const Signup = () => {
           
           <button type="submit" className='btn btn-success'>Sign up</button>
           <p className="mt-3 text-center">
-            Already have an account? <a href="/Signin" className="text-success">Sign in here</a>
+            Once you are done or you already have an account,  <a href="/Signin" className="text-success">Sign in here</a>
           </p>
         </form>
       </div>
