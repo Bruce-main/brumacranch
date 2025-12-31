@@ -5,12 +5,14 @@ import Navbar from "./Navbar";
 const DeletedProducts = () => {
   const [deletedProducts, setDeletedProducts] = useState([]);
   const [totalRevenue, setTotalRevenue] = useState(0);
-  const [search, setSearch] = useState(""); // ✅ search state
+  const [search, setSearch] = useState("");
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetchDeletedProducts();
   }, []);
 
+  // ✅ Fetch deleted products + revenue (no income insert here)
   const fetchDeletedProducts = () => {
     axios
       .get("https://brumacranch2point0.pythonanywhere.com/api/deletedproducts")
@@ -23,6 +25,7 @@ const DeletedProducts = () => {
       });
   };
 
+  // ✅ Restore single product
   const restoreProduct = (productId) => {
     axios
       .post(
@@ -36,6 +39,7 @@ const DeletedProducts = () => {
       });
   };
 
+  // ✅ Restore all products
   const restoreAllProducts = () => {
     axios
       .post(
@@ -49,7 +53,23 @@ const DeletedProducts = () => {
       });
   };
 
-  // ✅ filter deleted products by search term
+  // ✅ Push revenue into income table manually
+  const pushRevenueToIncome = () => {
+    axios
+      .post("https://brumacranch2point0.pythonanywhere.com/api/addincome", {
+        expenditure: 0, // or user-provided later
+        revenue: totalRevenue,
+      })
+      .then((res) => {
+        setMessage(res.data.Message);
+      })
+      .catch((error) => {
+        console.error("Error pushing revenue to income:", error);
+        setMessage("Error updating income");
+      });
+  };
+
+  // ✅ Filter deleted products by search term
   const filteredDeletedProducts = deletedProducts.filter((product) =>
     product.name?.toLowerCase().includes(search.toLowerCase())
   );
@@ -58,7 +78,6 @@ const DeletedProducts = () => {
 
   return (
     <>
-      {/* ✅ Navbar at the top */}
       <Navbar user={user} />
 
       <div className="container-fluid bg-light min-vh-100 py-4">
@@ -66,7 +85,7 @@ const DeletedProducts = () => {
           🗂️ Deleted Products 🗂️
         </h2>
 
-        {/* ✅ Restore All button only (navigation handled by Navbar) */}
+        {/* Restore All button */}
         <div className="text-center mb-4">
           {deletedProducts.length > 0 && (
             <button
@@ -78,7 +97,7 @@ const DeletedProducts = () => {
           )}
         </div>
 
-        {/* ✅ Search bar */}
+        {/* Search bar */}
         <div className="row justify-content-center mb-4">
           <input
             type="search"
@@ -89,6 +108,7 @@ const DeletedProducts = () => {
           />
         </div>
 
+        {/* Deleted products table */}
         <div className="table-responsive">
           <table className="table table-bordered table-hover shadow-sm">
             <thead className="table-danger">
@@ -127,9 +147,24 @@ const DeletedProducts = () => {
           )}
         </div>
 
+        {/* Revenue summary + push button */}
         <h2 className="text-center text-success fw-bold mt-4">
           Total Revenue from Deleted Products: KES {totalRevenue}
         </h2>
+
+        <div className="text-center mt-3">
+          <button
+            className="btn btn-primary fw-bold shadow"
+            onClick={pushRevenueToIncome}
+            disabled={totalRevenue === 0}
+          >
+            💰 Push Revenue to Income
+          </button>
+        </div>
+
+        {message && (
+          <p className="text-center text-success fw-bold mt-3">{message}</p>
+        )}
       </div>
     </>
   );

@@ -6,8 +6,8 @@ const Navbar = () => {
     <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
       <div className="container-fluid">
         {/* Brand / Logo */}
-        <Link className="navbar-brand fw-bold text-success" to="/">
-          🌾 BrumaCranch
+        <Link className="navbar-brand fw-bold text-success" to="/getproducts">
+          🌾 Brumac Ranch
         </Link>
 
         {/* Toggle for mobile */}
@@ -39,6 +39,17 @@ const Navbar = () => {
             <li className="nav-item">
               <Link className="nav-link" to="/deletedproducts">
                 🗂️ Deleted Products
+              </Link>
+            </li>
+            {/* New Income Links */}
+            <li className="nav-item">
+              <Link className="nav-link" to="/addincome">
+                💰 Add Income
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link" to="/getincome">
+                📊 Income Records
               </Link>
             </li>
           </ul>
