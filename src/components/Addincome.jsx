@@ -11,8 +11,22 @@ const AddIncome = () => {
   // ✅ Fetch revenue from deleted products
   const fetchRevenue = async () => {
     try {
-      const res = await axios.get("https://brumacranch2point0.pythonanywhere.com/api/deletedproducts");
-      setRevenue(res.data.total_revenue || 0);
+      const res = await axios.get(
+        "https://brumacranch2point0.pythonanywhere.com/api/deletedproducts"
+      );
+
+      // If backend already provides total_revenue, use it
+      if (res.data.total_revenue !== undefined) {
+        setRevenue(res.data.total_revenue);
+      } else {
+        // Otherwise calculate manually from deleted_products list
+        const deletedProducts = res.data.deleted_products || [];
+        const total = deletedProducts.reduce(
+          (sum, product) => sum + (product.price || 0),
+          0
+        );
+        setRevenue(total);
+      }
     } catch (err) {
       console.error("Error fetching revenue:", err);
     }
@@ -29,10 +43,13 @@ const AddIncome = () => {
     }
     setLoading(true);
     try {
-      const res = await axios.post("https://brumacranch2point0.pythonanywhere.com/api/addincome", {
-        expenditure,
-        revenue, // ✅ auto‑filled from deleted products
-      });
+      const res = await axios.post(
+        "https://brumacranch2point0.pythonanywhere.com/api/addincome",
+        {
+          expenditure,
+          revenue, // ✅ auto‑filled from deleted products
+        }
+      );
       setMessage(res.data.Message);
       setExpenditure("");
       fetchRevenue(); // refresh revenue after adding
@@ -68,8 +85,14 @@ const AddIncome = () => {
             readOnly
           />
 
+          {/* Show net income summary */}
+          <div className="alert alert-info mt-2">
+            <strong>Net Income:</strong>{" "}
+            {revenue - (parseFloat(expenditure) || 0)} KES
+          </div>
+
           <button
-            className="btn text-white px-4 py-2"
+            className="btn btn-success px-4 py-2 mt-2"
             onClick={handleAddIncome}
             disabled={loading}
           >

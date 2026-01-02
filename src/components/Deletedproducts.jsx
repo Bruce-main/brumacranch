@@ -4,28 +4,25 @@ import Navbar from "./Navbar";
 
 const DeletedProducts = () => {
   const [deletedProducts, setDeletedProducts] = useState([]);
-  const [totalRevenue, setTotalRevenue] = useState(0);
   const [search, setSearch] = useState("");
-  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetchDeletedProducts();
   }, []);
 
-  // ✅ Fetch deleted products + revenue (no income insert here)
+  // Fetch deleted products
   const fetchDeletedProducts = () => {
     axios
       .get("https://brumacranch2point0.pythonanywhere.com/api/deletedproducts")
       .then((response) => {
-        setDeletedProducts(response.data.deleted_products);
-        setTotalRevenue(response.data.total_revenue);
+        setDeletedProducts(response.data.deleted_products || []);
       })
       .catch((error) => {
         console.error("Error fetching deleted products:", error);
       });
   };
 
-  // ✅ Restore single product
+  // Restore single product (restore one row from the group)
   const restoreProduct = (productId) => {
     axios
       .post(
@@ -39,7 +36,7 @@ const DeletedProducts = () => {
       });
   };
 
-  // ✅ Restore all products
+  // Restore all products globally
   const restoreAllProducts = () => {
     axios
       .post(
@@ -53,35 +50,48 @@ const DeletedProducts = () => {
       });
   };
 
-  // ✅ Push revenue into income table manually
-  const pushRevenueToIncome = () => {
-    axios
-      .post("https://brumacranch2point0.pythonanywhere.com/api/addincome", {
-        expenditure: 0, // or user-provided later
-        revenue: totalRevenue,
-      })
-      .then((res) => {
-        setMessage(res.data.Message);
-      })
-      .catch((error) => {
-        console.error("Error pushing revenue to income:", error);
-        setMessage("Error updating income");
-      });
+  // Restore all rows for a specific product name
+  const restoreGroup = async (name) => {
+    try {
+      const group = groupedDeletedProducts[name];
+      await Promise.all(
+        group.map((p) =>
+          axios.post(
+            `https://brumacranch2point0.pythonanywhere.com/api/restoreproduct/${p.product_id}`
+          )
+        )
+      );
+      fetchDeletedProducts();
+    } catch (error) {
+      console.error("Error restoring group:", error);
+    }
   };
 
-  // ✅ Filter deleted products by search term
-  const filteredDeletedProducts = deletedProducts.filter((product) =>
-    product.name?.toLowerCase().includes(search.toLowerCase())
+  // Group deleted products by name
+  const groupedDeletedProducts = deletedProducts.reduce((acc, product) => {
+    if (!acc[product.name]) acc[product.name] = [];
+    acc[product.name].push(product);
+    return acc;
+  }, {});
+
+  // Apply search filter
+  const filteredGroups = Object.entries(groupedDeletedProducts).filter(([name]) =>
+    name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const user = { name: "Bruce" }; // Example user, replace with auth state
+  // ✅ Calculate accumulated revenue
+  const accumulatedRevenue = deletedProducts.reduce((sum, product) => {
+    return sum + (product.price || 0);
+  }, 0);
+
+  const user = { name: "Bruce" };
 
   return (
     <>
       <Navbar user={user} />
 
       <div className="container-fluid bg-light min-vh-100 py-4">
-        <h2 className="text-center text-success fw-bold mb-4 farm-title">
+        <h2 className="text-center text-danger fw-bold mb-4">
           🗂️ Deleted Products 🗂️
         </h2>
 
@@ -95,6 +105,13 @@ const DeletedProducts = () => {
               ♻️ Restore All Products
             </button>
           )}
+        </div>
+
+        {/* Accumulated Revenue */}
+        <div className="text-center mb-4">
+          <h4 className="fw-bold text-danger">
+            💰 Accumulated Revenue (Deleted): KES {accumulatedRevenue}
+          </h4>
         </div>
 
         {/* Search bar */}
@@ -116,55 +133,46 @@ const DeletedProducts = () => {
                 <th>Name</th>
                 <th>Description</th>
                 <th>Price (KES)</th>
+                <th>Quantity</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredDeletedProducts.map((product) => (
-                <tr key={product.product_id} className="align-middle">
-                  <td className="fw-bold text-danger">{product.name}</td>
-                  <td className="fst-italic text-muted">
-                    {product.description || "No description available"}
-                  </td>
-                  <td className="fw-bold">{product.price}</td>
-                  <td className="text-center">
-                    <div className="d-flex flex-wrap justify-content-center gap-2">
+              {filteredGroups.map(([name, group]) => {
+                const firstProduct = group[0];
+                const quantity = group.length;
+                return (
+                  <tr key={name} className="align-middle">
+                    <td className="fw-bold text-danger">{name}</td>
+                    <td className="fst-italic text-muted">
+                      {firstProduct.description || "No description available"}
+                    </td>
+                    <td className="fw-bold">{firstProduct.price}</td>
+                    <td className="fw-bold">{quantity}</td>
+                    <td className="text-center">
                       <button
-                        className="btn btn-success btn-sm"
-                        onClick={() => restoreProduct(product.product_id)}
+                        className="btn btn-success btn-sm me-2"
+                        onClick={() => restoreProduct(firstProduct.product_id)}
                       >
-                        ♻️ Restore
+                        ♻️ Restore One
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      <button
+                        className="btn btn-primary btn-sm"
+                        onClick={() => restoreGroup(name)}
+                      >
+                        ♻️ Restore All {name}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
 
-          {filteredDeletedProducts.length === 0 && (
+          {filteredGroups.length === 0 && (
             <p className="text-center text-muted">No deleted products found.</p>
           )}
         </div>
-
-        {/* Revenue summary + push button */}
-        <h2 className="text-center text-success fw-bold mt-4">
-          Total Revenue from Deleted Products: KES {totalRevenue}
-        </h2>
-
-        <div className="text-center mt-3">
-          <button
-            className="btn btn-primary fw-bold shadow"
-            onClick={pushRevenueToIncome}
-            disabled={totalRevenue === 0}
-          >
-            💰 Push Revenue to Income
-          </button>
-        </div>
-
-        {message && (
-          <p className="text-center text-success fw-bold mt-3">{message}</p>
-        )}
       </div>
     </>
   );

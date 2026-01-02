@@ -12,8 +12,6 @@ const Getproducts = () => {
   const [editDescription, setEditDescription] = useState("");
   const [editPrice, setEditPrice] = useState("");
 
-
-
   const getProducts = async () => {
     setLoading(true);
     try {
@@ -23,9 +21,8 @@ const Getproducts = () => {
       setProducts(response.data);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching products:", err.response?.data || err.message);
       setLoading(false);
-      setError("Oops! Something went wrong while loading the products.");
+      setError("Failed to load products");
     }
   };
 
@@ -33,72 +30,7 @@ const Getproducts = () => {
     getProducts();
   }, []);
 
-  const handleDeleteOne = async (productId) => {
-    try {
-      await axios.delete(
-        `https://brumacranch2point0.pythonanywhere.com/api/products/${productId}`
-      );
-      setProducts(products.filter((p) => p.product_id !== productId));
-    } catch (err) {
-      console.error("Error deleting product:", err.response?.data || err.message);
-      setError("Failed to delete product.");
-    }
-  };
-
-  const handleDeleteAll = async (name) => {
-    try {
-      const productsToDelete = products.filter((p) => p.name === name);
-      await Promise.all(
-        productsToDelete.map((p) =>
-          axios.delete(
-            `https://brumacranch2point0.pythonanywhere.com/api/products/${p.product_id}`
-          )
-        )
-      );
-      setProducts(products.filter((p) => p.name !== name));
-    } catch (err) {
-      console.error("Error deleting products:", err.response?.data || err.message);
-      setError("Failed to delete products.");
-    }
-  };
-
-  const startEditGroup = (name, group) => {
-    setEditingGroup(name);
-    setEditName(name);
-    setEditDescription(group[0].description);
-    setEditPrice(group[0].price);
-  };
-
-  const handleUpdateAll = async (name, group) => {
-    try {
-      await Promise.all(
-        group.map((p) =>
-          axios.put(
-            `https://brumacranch2point0.pythonanywhere.com/api/products/${p.product_id}`,
-            {
-              name: editName,
-              description: editDescription,
-              price: editPrice,
-            },
-            { headers: { "Content-Type": "application/json" } }
-          )
-        )
-      );
-
-      setProducts(
-        products.map((p) =>
-          p.name === name
-            ? { ...p, name: editName, description: editDescription, price: editPrice }
-            : p
-        )
-      );
-      setEditingGroup(null);
-    } catch (err) {
-      console.error("Error updating products:", err.response?.data || err.message);
-      setError("Failed to update products.");
-    }
-  };
-
+  // Group products by name
   const groupedProducts = products.reduce((acc, product) => {
     if (!acc[product.name]) acc[product.name] = [];
     acc[product.name].push(product);
@@ -109,19 +41,90 @@ const Getproducts = () => {
     name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const user = { name: "Bruce" }; // Example user, replace with auth state
+  // ✅ Add one unit (duplicate row)
+  const handleAddOne = async (productId) => {
+    try {
+      await axios.post(
+        `https://brumacranch2point0.pythonanywhere.com/api/products/${productId}/addone`
+      );
+      getProducts();
+    } catch {
+      setError("Failed to add product");
+    }
+  };
+
+  // ✅ Delete ONE row (pick first product_id from group)
+  const handleDeleteOne = async (name) => {
+    try {
+      const group = groupedProducts[name];
+      if (!group || group.length === 0) return;
+      const productId = group[0].product_id;
+      await axios.delete(
+        `https://brumacranch2point0.pythonanywhere.com/api/products/${productId}`
+      );
+      getProducts();
+    } catch {
+      setError("Failed to delete product");
+    }
+  };
+
+  // ✅ Delete ALL rows with same name
+  const handleDeleteAll = async (name) => {
+    try {
+      const group = groupedProducts[name];
+      await Promise.all(
+        group.map((p) =>
+          axios.delete(
+            `https://brumacranch2point0.pythonanywhere.com/api/products/${p.product_id}`
+          )
+        )
+      );
+      getProducts();
+    } catch {
+      setError("Failed to delete products");
+    }
+  };
+
+  // ✅ Start editing group
+  const startEditGroup = (name, group) => {
+    setEditingGroup(name);
+    setEditName(name);
+    setEditDescription(group[0].description);
+    setEditPrice(group[0].price);
+  };
+
+  // ✅ Update all rows in group
+  const handleUpdateAll = async (name, group) => {
+    try {
+      await Promise.all(
+        group.map((p) =>
+          axios.put(
+            `https://brumacranch2point0.pythonanywhere.com/api/products/${p.product_id}`,
+            {
+              name: editName || p.name,
+              description: editDescription || p.description,
+              price: editPrice || p.price,
+            }
+          )
+        )
+      );
+      getProducts();
+      setEditingGroup(null);
+    } catch {
+      setError("Failed to update products");
+    }
+  };
+
+  const user = { name: "Bruce" };
 
   return (
     <>
-      {/* ✅ Navbar at the top */}
       <Navbar user={user} />
-
       <div className="container-fluid bg-light min-vh-100 py-4">
-        <h2 className="text-center text-success fw-bold mb-4 farm-title">
+        <h2 className="text-center text-success fw-bold mb-4">
           🌾 Browse Our Farm Products 🌾
         </h2>
 
-        {/* ✅ Search bar only, buttons removed */}
         <div className="row justify-content-center mb-4">
           <input
             type="search"
@@ -132,7 +135,7 @@ const Getproducts = () => {
           />
         </div>
 
-        {loading && <p className="text-success text-center">Loading farm products...</p>}
+        {loading && <p className="text-success text-center">Loading...</p>}
         {error && <p className="text-danger text-center">{error}</p>}
 
         <div className="table-responsive">
@@ -142,13 +145,14 @@ const Getproducts = () => {
                 <th>Name</th>
                 <th>Description</th>
                 <th>Price (KES)</th>
-                <th>Amount</th>
+                <th>Quantity</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredGroups.map(([name, group]) => {
                 const firstProduct = group[0];
+                const quantity = group.length;
                 return (
                   <tr key={name} className="align-middle">
                     {editingGroup === name ? (
@@ -176,22 +180,20 @@ const Getproducts = () => {
                             onChange={(e) => setEditPrice(e.target.value)}
                           />
                         </td>
-                        <td className="fw-bold">{group.length}</td>
+                        <td className="fw-bold">{quantity}</td>
                         <td className="text-center">
-                          <div className="d-flex flex-wrap justify-content-center gap-2">
-                            <button
-                              className="btn btn-success btn-sm"
-                              onClick={() => handleUpdateAll(name, group)}
-                            >
-                              ✅ Save
-                            </button>
-                            <button
-                              className="btn btn-secondary btn-sm"
-                              onClick={() => setEditingGroup(null)}
-                            >
-                              ❌ Cancel
-                            </button>
-                          </div>
+                          <button
+                            className="btn btn-success btn-sm me-2"
+                            onClick={() => handleUpdateAll(name, group)}
+                          >
+                            ✅ Save
+                          </button>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            onClick={() => setEditingGroup(null)}
+                          >
+                            ❌ Cancel
+                          </button>
                         </td>
                       </>
                     ) : (
@@ -201,28 +203,32 @@ const Getproducts = () => {
                           {firstProduct.description || "No description available"}
                         </td>
                         <td className="fw-bold">{firstProduct.price}</td>
-                        <td className="fw-bold">{group.length}</td>
+                        <td className="fw-bold">{quantity}</td>
                         <td className="text-center">
-                          <div className="d-flex flex-wrap justify-content-center gap-2">
-                            <button
-                              className="btn btn-warning btn-sm"
-                              onClick={() => startEditGroup(name, group)}
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button
-                              className="btn btn-danger btn-sm"
-                              onClick={() => handleDeleteOne(firstProduct.product_id)}
-                            >
-                              🗑️ Delete One
-                            </button>
-                            <button
-                              className="btn btn-dark btn-sm"
-                              onClick={() => handleDeleteAll(name)}
-                            >
-                              🗑️ Delete All
-                            </button>
-                          </div>
+                          <button
+                            className="btn btn-warning btn-sm me-2"
+                            onClick={() => startEditGroup(name, group)}
+                          >
+                            ✏️ Edit
+                          </button>
+                          <button
+                            className="btn btn-success btn-sm me-2"
+                            onClick={() => handleAddOne(firstProduct.product_id)}
+                          >
+                            ➕ Add
+                          </button>
+                          <button
+                            className="btn btn-danger btn-sm me-2"
+                            onClick={() => handleDeleteOne(name)}
+                          >
+                            🗑️ Delete One
+                          </button>
+                          <button
+                            className="btn btn-dark btn-sm"
+                            onClick={() => handleDeleteAll(name)}
+                          >
+                            🗑️ Delete All
+                          </button>
                         </td>
                       </>
                     )}
