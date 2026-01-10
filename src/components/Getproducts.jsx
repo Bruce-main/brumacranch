@@ -30,37 +30,24 @@ const Getproducts = () => {
     getProducts();
   }, []);
 
-  // Group products by name
   const groupedProducts = products.reduce((acc, product) => {
-    if (!acc[product.name]) acc[product.name] = [];
-    acc[product.name].push(product);
+    const key = `${product.name}||${product.description}`;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(product);
     return acc;
   }, {});
 
-  const filteredGroups = Object.entries(groupedProducts).filter(([name]) =>
-    name.toLowerCase().includes(search.toLowerCase())
+  const filteredGroups = Object.entries(groupedProducts).filter(([key]) =>
+    key.toLowerCase().includes(search.toLowerCase())
   );
 
-  // ✅ Add one unit (duplicate row)
-  const handleAddOne = async (productId) => {
+  const handleDeleteOne = async (key) => {
     try {
-      await axios.post(
-        `https://brumacranch2point0.pythonanywhere.com/api/products/${productId}/addone`
-      );
-      getProducts();
-    } catch {
-      setError("Failed to add product");
-    }
-  };
-
-  // ✅ Delete ONE row (pick first product_id from group)
-  const handleDeleteOne = async (name) => {
-    try {
-      const group = groupedProducts[name];
+      const group = groupedProducts[key];
       if (!group || group.length === 0) return;
       const productId = group[0].product_id;
       await axios.delete(
-        `https://brumacranch2point0.pythonanywhere.com/api/products/${productId}`
+        `https://brumacranch2point0.pythonanywhere.com/api/products/${productId}/deleteone`
       );
       getProducts();
     } catch {
@@ -68,14 +55,13 @@ const Getproducts = () => {
     }
   };
 
-  // ✅ Delete ALL rows with same name
-  const handleDeleteAll = async (name) => {
+  const handleDeleteAll = async (key) => {
     try {
-      const group = groupedProducts[name];
+      const group = groupedProducts[key];
       await Promise.all(
         group.map((p) =>
           axios.delete(
-            `https://brumacranch2point0.pythonanywhere.com/api/products/${p.product_id}`
+            `https://brumacranch2point0.pythonanywhere.com/api/products/${p.product_id}/deleteone`
           )
         )
       );
@@ -85,16 +71,34 @@ const Getproducts = () => {
     }
   };
 
-  // ✅ Start editing group
-  const startEditGroup = (name, group) => {
-    setEditingGroup(name);
+  const handleAddQuantity = async (key) => {
+    try {
+      const group = groupedProducts[key];
+      if (!group || group.length === 0) return;
+      const firstProduct = group[0];
+      await axios.post(
+        "https://brumacranch2point0.pythonanywhere.com/api/products",
+        {
+          name: firstProduct.name,
+          description: firstProduct.description,
+          price: firstProduct.price,
+        }
+      );
+      getProducts();
+    } catch {
+      setError("Failed to add quantity");
+    }
+  };
+
+  const startEditGroup = (key, group) => {
+    const [name, description] = key.split("||");
+    setEditingGroup(key);
     setEditName(name);
-    setEditDescription(group[0].description);
+    setEditDescription(description);
     setEditPrice(group[0].price);
   };
 
-  // ✅ Update all rows in group
-  const handleUpdateAll = async (name, group) => {
+  const handleUpdateAll = async (key, group) => {
     try {
       await Promise.all(
         group.map((p) =>
@@ -150,12 +154,14 @@ const Getproducts = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredGroups.map(([name, group]) => {
+              {filteredGroups.map(([key, group]) => {
+                const [name, description] = key.split("||");
                 const firstProduct = group[0];
                 const quantity = group.length;
+
                 return (
-                  <tr key={name} className="align-middle">
-                    {editingGroup === name ? (
+                  <tr key={key} className="align-middle">
+                    {editingGroup === key ? (
                       <>
                         <td>
                           <input
@@ -169,7 +175,9 @@ const Getproducts = () => {
                           <textarea
                             className="form-control"
                             value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
+                            onChange={(e) =>
+                              setEditDescription(e.target.value)
+                            }
                           />
                         </td>
                         <td>
@@ -184,15 +192,15 @@ const Getproducts = () => {
                         <td className="text-center">
                           <button
                             className="btn btn-success btn-sm me-2"
-                            onClick={() => handleUpdateAll(name, group)}
+                            onClick={() => handleUpdateAll(key, group)}
                           >
-                            ✅ Save
+                            ✅
                           </button>
                           <button
                             className="btn btn-secondary btn-sm"
                             onClick={() => setEditingGroup(null)}
                           >
-                            ❌ Cancel
+                            ❌
                           </button>
                         </td>
                       </>
@@ -200,34 +208,34 @@ const Getproducts = () => {
                       <>
                         <td className="fw-bold text-success">{name}</td>
                         <td className="fst-italic text-muted">
-                          {firstProduct.description || "No description available"}
+                          {description || "No description available"}
                         </td>
                         <td className="fw-bold">{firstProduct.price}</td>
                         <td className="fw-bold">{quantity}</td>
                         <td className="text-center">
                           <button
                             className="btn btn-warning btn-sm me-2"
-                            onClick={() => startEditGroup(name, group)}
+                            onClick={() => startEditGroup(key, group)}
                           >
                             ✏️ Edit
                           </button>
                           <button
                             className="btn btn-success btn-sm me-2"
-                            onClick={() => handleAddOne(firstProduct.product_id)}
+                            onClick={() => handleAddQuantity(key)}
                           >
-                            ➕ Add
+                            ➕ Add Qty
                           </button>
                           <button
                             className="btn btn-danger btn-sm me-2"
-                            onClick={() => handleDeleteOne(name)}
+                            onClick={() => handleDeleteOne(key)}
                           >
-                            🗑️ Delete One
+                            💸 Sell 1
                           </button>
                           <button
                             className="btn btn-dark btn-sm"
-                            onClick={() => handleDeleteAll(name)}
+                            onClick={() => handleDeleteAll(key)}
                           >
-                            🗑️ Delete All
+                            💰 Sell All
                           </button>
                         </td>
                       </>

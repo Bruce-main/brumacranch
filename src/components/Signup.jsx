@@ -16,31 +16,36 @@ const Signup = () => {
   const submit = async (e) => {
     e.preventDefault();
     setLoading("Please wait as we sign you up...");
+    setError("");
 
     try {
-      // ✅ Send JSON instead of FormData
+      // ✅ Send JSON payload
       const response = await axios.post(
         "https://brumacranch2point0.pythonanywhere.com/api/signup",
-        {
-          email,
-          password,
-          phone,
-          username,
-        },
+        { username, email, phone, password },
         { headers: { "Content-Type": "application/json" } }
       );
 
       setLoading("");
-      if (response.data.user) {
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        // ✅ Redirect to Getproducts page
-        navigate("/Getproducts"); 
+      if (response.status === 201) {
+        // Signup successful → save user info if backend returns it
+        if (response.data.user) {
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+        }
+        navigate("/Getproducts"); // Redirect to products page
       } else {
-        setError(response.data.Message);
+        setError(response.data.Message || "Signup failed. Try again.");
       }
-    } catch (error) {
+    } catch (err) {
       setLoading("");
-      setError(error.response?.data?.Message || "Signup failed.");
+      // Show detailed backend message if available
+      if (err.response?.data?.Error) {
+        setError(err.response.data.Error);
+      } else if (err.response?.data?.Message) {
+        setError(err.response.data.Message);
+      } else {
+        setError("Signup failed. Please try again.");
+      }
     }
   };
 
@@ -48,8 +53,8 @@ const Signup = () => {
     <div className='row justify-content-center mt-5'>
       <div className="card shadow col-md-6 p-4">
         <h2>Sign up</h2>
-        {loading} <br />
-        {error}
+        {loading && <p className="text-success">{loading}</p>}
+        {error && <p className="text-danger">{error}</p>}
         
         <form onSubmit={submit}>
           <input 
@@ -63,7 +68,7 @@ const Signup = () => {
 
           <input 
             type="email"
-            placeholder='Enter your email address here'
+            placeholder='Enter your email address'
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -82,7 +87,7 @@ const Signup = () => {
           <div className="input-group">
             <input 
               type={passwordVisible ? "text" : "password"}
-              placeholder='Enter the password'
+              placeholder='Enter your password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -93,13 +98,14 @@ const Signup = () => {
               onClick={() => setPasswordVisible(prev => !prev)} 
               className="btn btn-outline-secondary"
             >
-              {passwordVisible ? "👁️‍🗨️" : "👁️‍🗨️"}
+              {passwordVisible ? "🙈" : "👁️"}
             </button>
           </div> <br />
           
-          <button type="submit" className='btn btn-success'>Sign up</button>
+          <button type="submit" className='btn btn-success w-100'>Sign up</button>
+
           <p className="mt-3 text-center">
-            Once you are done or you already have an account,  <a href="/Signin" className="text-success">Sign in here</a>
+            Already have an account? <a href="/Signin" className="text-success">Sign in here</a>
           </p>
         </form>
       </div>

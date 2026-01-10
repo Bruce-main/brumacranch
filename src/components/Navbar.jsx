@@ -3,10 +3,17 @@ import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
-    <nav className="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <nav
+      className="navbar navbar-expand-lg shadow-sm"
+      style={{ backgroundColor: "#fffbea", borderBottom: "2px solid #6c9a74" }}
+    >
       <div className="container-fluid">
         {/* Brand / Logo */}
-        <Link className="navbar-brand fw-bold text-success" to="/getproducts">
+        <Link
+          className="navbar-brand fw-bold text-success farm-title"
+          to="/getproducts"
+          style={{ letterSpacing: "1px" }}
+        >
           🌾 Brumac Ranch
         </Link>
 
@@ -19,8 +26,12 @@ const Navbar = () => {
           aria-controls="farmNavbar"
           aria-expanded="false"
           aria-label="Toggle navigation"
+          style={{ borderColor: "#6c9a74" }}
         >
-          <span className="navbar-toggler-icon"></span>
+          <span
+            className="navbar-toggler-icon"
+            style={{ backgroundColor: "#6c9a74" }}
+          ></span>
         </button>
 
         {/* Links */}
@@ -38,18 +49,22 @@ const Navbar = () => {
             </li>
             <li className="nav-item">
               <Link className="nav-link" to="/deletedproducts">
-                🗂️ Deleted Products
+                🗂️ Sold Products
               </Link>
             </li>
-            {/* New Income Links */}
-            <li className="nav-item">
-              <Link className="nav-link" to="/addincome">
-                💰 Add Income
-              </Link>
-            </li>
+            {/* Income Links */}
             <li className="nav-item">
               <Link className="nav-link" to="/getincome">
                 📊 Income Records
+              </Link>
+            </li>
+            <li className="nav-item">
+              <Link
+                className="nav-link"
+                to="/stocks"
+                title="Password-protected page"
+              >
+                📦 Stocks
               </Link>
             </li>
           </ul>

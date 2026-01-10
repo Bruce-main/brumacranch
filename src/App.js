@@ -12,7 +12,8 @@ import Getproducts from './components/Getproducts';
 import Deletedproducts from './components/Deletedproducts';
 import Navbar from './components/Navbar';
 import GetIncome from './components/Getincome';
-import AddIncome from './components/Addincome';
+import Stocks from './components/Stocks';
+
 
 function App() {
   return (
@@ -23,9 +24,9 @@ function App() {
         <Route path="/signin" element={<Signin />} />
         <Route path="/navbar" element={<Navbar />} />
         <Route path="/getincome" element={<GetIncome />} />
-        <Route path="/addincome" element={<AddIncome />} />
         <Route path="/deletedproducts" element={<Deletedproducts />} />
         <Route path="/addproducts" element={<Addproducts />} />
+        <Route path="/stocks" element={<Stocks />} />
         <Route path="/getproducts" element={<Getproducts />} />   {/* ✅ stocks route */}
       </Routes>
     </Router>
